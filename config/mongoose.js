@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-// const dotenv = require("dotenv");
-// dotenv.config();
+const dotenv = require("dotenv");
+dotenv.config();
 
 const database = process.env.MONGO_URI || "mongodb://baim:baim45@localhost:27017/bayu-native?authSource=admin";
 
