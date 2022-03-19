@@ -7,6 +7,8 @@ const database = process.env.MONGO_URI || "mongodb://baim:baim45@localhost:27017
 mongoose.connect(database, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
+  useFindAndModify:true,
+  useCreateIndex:true
 });
 
 mongoose.connection.on("connected", () => {
