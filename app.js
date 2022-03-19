@@ -2,7 +2,7 @@ require("./config/mongoose.js");
 const express = require("express");
 const path = require("path");
 const app = express();
-// const logger = require("morgan");
+const logger = require("morgan");
 const port = process.env.PORT || 3000;
 const productRouterV3 = require("./app/product_v3/routes");
 const productRouterV4 = require("./app/product_v4/routes");
