@@ -3,62 +3,126 @@ const fs = require("fs");
 const path = require("path");
 
 const store = (req, res) => {
-  const { name, price, stock, status } = req.body;
+  const createProduct = new Product(req.body);
   const image = req.file;
   if (image) {
     const target = path.join(__dirname, "../../uploads", image.originalname);
     fs.renameSync(image.path, target);
-    // res.sendFile(target);
-    Product.create({ name, price, stock, status, image_url: `${req.protocol}://${req.headers.host}/public/${encodeURI(image.originalname)}` })
-      .then((result) => res.send(result))
-      .catch((error) => res.send(error));
+    createProduct.image = {
+      image_url: `${req.protocol}://${req.headers.host}/public/${encodeURI(image.originalname)}`,
+    };
+  } else {
+    createProduct.image = {
+      image_url: null,
+    };
   }
+
+  createProduct.save((error, product) => {
+    if (error) {
+      res.status(404).send({
+        message: "failed",
+        error,
+      });
+    } else {
+      res.status(200).send({
+        message: "new data added successfully",
+        product,
+      });
+    }
+  });
 };
 
 const updateData = (req, res) => {
-  const { name, price, stock, status } = req.body;
+  const updateData = req.body;
   const image = req.file;
+
   if (image) {
     const target = path.join(__dirname, "../../uploads", image.originalname);
     fs.renameSync(image.path, target);
 
-    Product.findByIdAndUpdate(
-      {
-        _id: req.params.id,
-      },
-      {
-        $set: {
-          name,
-          price,
-          stock,
-          status,
-          image_url: image ? `${req.protocol}://${req.headers.host}/public/${encodeURI(image.originalname)}` : null,
-        },
-      }
-    )
-      .then((result) => res.send(result))
-      .catch((err) => res.send(err));
+    updateData.image = {
+      image_url: `${req.protocol}://${req.headers.host}/public/${encodeURI(image.originalname)}`,
+    };
   }
+
+  Product.findOneAndUpdate({ _id: req.params.id }, { $set: updateData }, { new: true }, (error, product) => {
+    if (error) {
+      res.status(404).send({
+        message: "failed",
+        error,
+      });
+    } else {
+      res.status(200).send({
+        message: "update data successfully updated",
+        product,
+      });
+    }
+  });
 };
 
 const index = (req, res) => {
-  Product.find()
-    .then((result) => res.send(result))
-    .catch((error) => res.send(error));
+  const { search } = req.query;
+  if (search) {
+    let src = search;
+    Product.find({ name: { $regex: ".*" + src.toLowerCase() + ".*", $options: "i" } }, (error, product) => {
+      if (error) {
+        res.status(404).send({
+          message: "not found",
+          error,
+        });
+      } else {
+        res.status(200).send({
+          product,
+        });
+      }
+    });
+  } else {
+    Product.find({}, (error, product) => {
+      if (error) {
+        res.status(404).send({
+          message: "not found",
+          error,
+        });
+      } else {
+        res.status(200).send({
+          product,
+        });
+      }
+    });
+  }
 };
 
 const view = (req, res) => {
   const id = req.params.id;
-  Product.findById({ _id: id })
-    .then((result) => res.send(result))
-    .catch((error) => res.send(error));
+  Product.findById({ _id: id }, (error, product) => {
+    if (error) {
+      res.status(404).send({
+        message: "not found",
+        error,
+      });
+    } else {
+      res.status(200).send({
+        product,
+      });
+    }
+  });
 };
 
 const destroy = (req, res) => {
   const id = req.params.id;
-  Product.deleteOne({ _id: id })
-    .then((result) => res.send(result))
-    .catch((error) => res.send(error));
+  Product.deleteOne({ _id: id }, (error, product) => {
+    if (error) {
+      res.status(404).send({
+        message: "failed",
+        error,
+      });
+    } else {
+      res.status(200).send({
+        message: "data deleted successfully",
+        product,
+      });
+    }
+  });
 };
 
 module.exports = {
