@@ -13,5 +13,5 @@ const client = new MongoClient(url);
   }
 })();
 
-const db = client.db("bayu-native");
+const db = client.db();
 module.exports = db;
